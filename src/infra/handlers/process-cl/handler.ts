@@ -1,3 +1,4 @@
+import { EventBridgeClient, PutEventsCommand } from "@aws-sdk/client-eventbridge";
 import type { SQSBatchResponse, SQSEvent } from "aws-lambda";
 import { createKyselyClient } from "../../adapters/database/kysely.client.js";
 
@@ -10,6 +11,11 @@ interface AppointmentSnsPayload {
   scheduleId: number;
   createdAt: string;
 }
+
+const eventBridge = new EventBridgeClient({
+  region: "us-east-1",
+  endpoint: process.env.EVENTBRIDGE_ENDPOINT || "http://docker.internal",
+});
 
 /**
  * Asynchronous Worker Lambda Handler consuming from SQS_PE.
@@ -43,6 +49,32 @@ export const handler = async (event: SQSEvent): Promise<SQSBatchResponse> => {
       console.log(
         `[Worker-CL] Successfully persisted record inside MySQL for ID: ${appointment.appointmentId}`,
       );
+
+      const eventBridgeResponse = await eventBridge.send(
+        new PutEventsCommand({
+          Entries: [
+            {
+              Source: "custom.appointments",
+              DetailType: "AppointmentConfirmed",
+              Detail: JSON.stringify({
+                insuredId: appointment.insuredId,
+                appointmentId: appointment.appointmentId,
+              }),
+              EventBusName: "default",
+            },
+          ],
+        }),
+      );
+
+      if (eventBridgeResponse.FailedEntryCount && eventBridgeResponse.FailedEntryCount > 0) {
+        console.error(
+          `[Worker-PE] EventBridge partial ingestion rebuff! Failed entries count: ${eventBridgeResponse.FailedEntryCount}`,
+        );
+      } else {
+        console.log(
+          `[Worker-PE] Compliance event successfully acknowledged by EventBridge. EventId: ${eventBridgeResponse.Entries?.[0]?.EventId}`,
+        );
+      }
     } catch (error) {
       console.error(
         `[Worker-CL] Critical record processing collapse for message ${record.messageId}:`,

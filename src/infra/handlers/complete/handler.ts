@@ -16,7 +16,7 @@ export const handler = async (event: SQSEvent): Promise<SQSBatchResponse> => {
 
   const rawClient = new DynamoDBClient({
     region: process.env.AWS_REGION || "us-east-1",
-    endpoint: process.env.DYNAMODB_ENDPOINT,
+    endpoint: process.env.DYNAMODB_ENDPOINT || "http://host.docker.internal:4566",
   });
   const ddbDocClient = DynamoDBDocumentClient.from(rawClient);
 
