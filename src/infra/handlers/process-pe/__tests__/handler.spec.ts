@@ -3,6 +3,19 @@ import { beforeEach, describe, expect, test, vi } from "vitest";
 import * as kyselyClientModule from "../../../adapters/database/kysely.client.js";
 import { handler } from "../handler.js";
 
+vi.mock("@aws-sdk/client-eventbridge", () => {
+  return {
+    EventBridgeClient: vi.fn().mockImplementation(() => {
+      return {
+        send: vi
+          .fn()
+          .mockResolvedValue({ FailedEntryCount: 0, Entries: [{ EventId: "mock-eb-id" }] }),
+      };
+    }),
+    PutEventsCommand: vi.fn().mockImplementation((args) => args),
+  };
+});
+
 describe("Infrastructure Layer - Asynchronous Peru Worker Lambda", () => {
   // Mock tracking containers for Kysely chain parameters
   const mockInsert = vi.fn().mockReturnThis();
