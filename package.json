@@ -22,6 +22,8 @@
     "infra:check-cl-queue": "docker exec -it rimac_challenge_localstack awslocal sqs get-queue-attributes --queue-url http://sqs.us-east-1.localhost.localstack.cloud:4566/000000000000/SQS_CL --attribute-names ApproximateNumberOfMessages",
     "infra:check-final-queue": "docker exec -it rimac_challenge_localstack awslocal sqs get-queue-attributes --queue-url http://sqs.us-east-1.localhost.localstack.cloud:4566/000000000000/SQS_FINAL --attribute-names ApproximateNumberOfMessages",
     "infra:read-cl-messages": "docker exec -it rimac_challenge_localstack awslocal sqs receive-message --queue-url http://sqs.us-east-1.localhost.localstack.cloud:4566/000000000000/SQS_CL --max-number-of-messages 5",
+    "infra:trace-pe": "printf '\\n[STAGE 1] INGEST AND NOSQL INITIAL WRITE\\n' && pnpm infra:logs-ingest && printf '\\n[STAGE 2] MYSQL REGIONAL INSERT\\n' && pnpm infra:logs-pe && printf '\\n[STAGE 3] EVENTBRIDGE LIFECYCLE CLOSURE\\n' && pnpm infra:logs-complete && pnpm infra:scan-ddb",
+    "infra:trace-cl": "printf '\\n[STAGE 1] INGEST AND NOSQL INITIAL WRITE\\n' && pnpm infra:logs-ingest && printf '\\n[STAGE 2] POSTGRESQL REGIONAL INSERT\\n' && pnpm infra:logs-cl && printf '\\n[STAGE 3] EVENTBRIDGE LIFECYCLE CLOSURE\\n' && pnpm infra:logs-complete && pnpm infra:scan-ddb",
     "test": "vitest run",
     "test:watch": "vitest",
     "test:coverage": "vitest run --coverage",
