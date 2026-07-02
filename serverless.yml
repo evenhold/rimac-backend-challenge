@@ -7,7 +7,7 @@
 service: rimac-backend-challenge
 
 plugins:
-  - serverless-localstack
+  - serverless-localstack # Al remover en produccion empezará a leer el .env
   - serverless-offline
 
 package:
@@ -40,9 +40,11 @@ provider:
     # 🔗 Mapeo de Red Relacional de Chile (PostgreSQL Engine)
     POSTGRES_CL_HOST: ${env:POSTGRES_CL_HOST, 'host.docker.internal'}
     POSTGRES_CL_PORT: ${env:POSTGRES_CL_PORT, '5432'}
-    POSTGRES_CL_DATABASE: ${env:POSTGRES_CL_DATABASE, 'medical_cl_db'} # Tu DB global de arranque
+    POSTGRES_CL_DATABASE: ${env:POSTGRES_CL_DATABASE, 'medical_cl_db'}
     POSTGRES_CL_USER: ${env:POSTGRES_CL_USER, 'rimac_user_cl'}
-    POSTGRES_CL_PASSWORD: ${env:POSTGRES_CL_PASSWORD, 'rimac_secure_pass_cl'} # Asegúrate de que coincida con tu .env
+    POSTGRES_CL_PASSWORD: ${env:POSTGRES_CL_PASSWORD, 'rimac_secure_pass_cl'}
+
+    EVENTBRIDGE_ENDPOINT: ${env:EVENTBRIDGE_ENDPOINT, 'http://host.docker.internal:4566'}
 
   # Principle of Least Privilege: Grants minimal IAM execution roles to ensure tight system security.
   iam:
@@ -173,9 +175,9 @@ resources:
         Description: "Captures appointment compliance events and routes them safely into SQS Final"
         EventPattern:
           source:
-            - "custom.appointments"
+            - "custom.appointments" # Source: "custom.appointments" -> handler.ts
           detail-type:
-            - "AppointmentConfirmed"
+            - "AppointmentConfirmed" # DetailType: "AppointmentConfirmed" -> handler.ts
         Targets:
           - Arn:
               Fn::GetAtt: [FinalQueue, Arn]
