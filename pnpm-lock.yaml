@@ -12,7 +12,7 @@ importers:
         specifier: ^3.1077.0
         version: 3.1077.0
       '@aws-sdk/client-sns':
-        specifier: ^3.600.0
+        specifier: ^3.1077.0
         version: 3.1077.0
       '@aws-sdk/client-sqs':
         specifier: ^3.600.0
