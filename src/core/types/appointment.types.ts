@@ -6,16 +6,16 @@ import { z } from "zod";
 export const CreateAppointmentSchema = z.object({
   insuredId: z
     .string()
-    .length(5, { message: "El insuredId debe tener exactamente 5 caracteres." })
-    .regex(/^\d+$/, { message: "El insureId debe contener solo números." }),
+    .length(5, { message: "The insuredId must be exactly 5 characters long." })
+    .regex(/^\d+$/, { message: "The insuredId must contain numbers only." }),
 
   scheduleId: z
-    .number({ required_error: "El scheduledId es obligatorio." })
-    .int({ message: "El scheduledId debe ser un número entero" })
-    .positive({ message: "El scheduledId debe ser un número positivo" }),
+    .number({ required_error: "The scheduleId is required." })
+    .int({ message: "The scheduleId must be an integer number." })
+    .positive({ message: "The scheduleId must be a positive number." }),
 
   countryISO: z.enum(["PE", "CL"], {
-    errorMap: () => ({ message: "El countryISO solo puede ser PE (Perú) o CL (Chile)." }),
+    errorMap: () => ({ message: "The countryISO must be either 'PE' (Peru) or 'CL' (Chile)." }),
   }),
 });
 

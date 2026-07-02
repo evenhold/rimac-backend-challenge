@@ -38,7 +38,7 @@ describe("Core domain - CreateAppointmentSchema validation", () => {
     expect(result.success).toBe(false);
     if (!result.success) {
       const errorMessages = result.error.format().insuredId?._errors;
-      expect(errorMessages).toContain("El insuredId debe tener exactamente 5 caracteres.");
+      expect(errorMessages).toContain("The insuredId must be exactly 5 characters long.");
     }
   });
 
