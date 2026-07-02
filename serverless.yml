@@ -35,7 +35,14 @@ provider:
     MYSQL_PE_PORT: ${env:MYSQL_PE_PORT, '3306'}
     MYSQL_PE_DATABASE: ${env:MYSQL_PE_DATABASE, 'medical_pe_db'}
     MYSQL_PE_USER: ${env:MYSQL_PE_USER, 'rimac_user_pe'}
-    MYSQL_PE_PASSWORD: ${env:MYSQL_PE_PASSWORD, 'rimac_secure_pass_pe'} # Sincronizado con tu password maestro
+    MYSQL_PE_PASSWORD: ${env:MYSQL_PE_PASSWORD, 'rimac_secure_pass_pe'}
+
+    # 🔗 Mapeo de Red Relacional de Chile (PostgreSQL Engine)
+    POSTGRES_CL_HOST: ${env:POSTGRES_CL_HOST, 'host.docker.internal'}
+    POSTGRES_CL_PORT: ${env:POSTGRES_CL_PORT, '5432'}
+    POSTGRES_CL_DATABASE: ${env:POSTGRES_CL_DATABASE, 'medical_cl_db'} # Tu DB global de arranque
+    POSTGRES_CL_USER: ${env:POSTGRES_CL_USER, 'rimac_user_cl'}
+    POSTGRES_CL_PASSWORD: ${env:POSTGRES_CL_PASSWORD, 'rimac_secure_pass_cl'} # Asegúrate de que coincida con tu .env
 
   # Principle of Least Privilege: Grants minimal IAM execution roles to ensure tight system security.
   iam:
@@ -224,4 +231,17 @@ functions:
     events:
       - sqs:
           arn: arn:aws:sqs:us-east-1:000000000000:SQS_PE # Properties.QueueName: SQS_PE
+          batchSize: 10
+
+  # ----------------------------------------------------------------------------
+  # Asynchronous Regional Worker (Chile - PostgreSQL Target Database)
+  # ----------------------------------------------------------------------------
+  processCl:
+    handler: .build/infra/handlers/process-cl/handler.handler
+    description: "Asynchronous worker consuming from SQS_CL to persist processed records inside PostgreSQL"
+    memorySize: 256
+    timeout: 30
+    events:
+      - sqs:
+          arn: arn:aws:sqs:us-east-1:000000000000:SQS_CL # Properties.QueueName: SQS_CL
           batchSize: 10
