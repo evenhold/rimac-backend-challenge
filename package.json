@@ -13,6 +13,7 @@
     "infra:logs-ingest": "docker exec -it rimac_challenge_localstack awslocal logs filter-log-events --log-group-name /aws/lambda/rimac-backend-challenge-dev-ingest --limit 10",
     "infra:logs-docker": "docker logs rimac_challenge_localstack | grep -E 'Error|Exception|runtime' -A 10",
     "infra:check-pe-queue": "docker exec -it rimac_challenge_localstack awslocal sqs get-queue-attributes --queue-url http://sqs.us-east-1.localhost.localstack.cloud:4566/000000000000/SQS_PE --attribute-names ApproximateNumberOfMessages",
+    "infra:scan-ddb": "docker exec -it rimac_challenge_localstack awslocal dynamodb scan --table-name rimac-backend-challenge-appointments-dev",
     "infra:read-pe-messages": "docker exec -it rimac_challenge_localstack awslocal sqs receive-message --queue-url http://sqs.us-east-1.localhost.localstack.cloud:4566/000000000000/SQS_PE --max-number-of-messages 5",
     "infra:check-cl-queue": "docker exec -it rimac_challenge_localstack awslocal sqs get-queue-attributes --queue-url http://sqs.us-east-1.localhost.localstack.cloud:4566/000000000000/SQS_CL --attribute-names ApproximateNumberOfMessages",
     "infra:read-cl-messages": "docker exec -it rimac_challenge_localstack awslocal sqs receive-message --queue-url http://sqs.us-east-1.localhost.localstack.cloud:4566/000000000000/SQS_CL --max-number-of-messages 5",
