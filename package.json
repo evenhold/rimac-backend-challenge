@@ -5,7 +5,7 @@
   "description": "Reto Técnico Backend para Rimac y Softtek usando Node.js 24+, AWS Serverless, Kysely y Arquitectura Funcional.",
   "main": "src/infra/handlers/ingest/handler.js",
   "scripts": {
-    "build":"tsc",
+    "build": "tsc",
     "dev": "serverless offline start --reloadOnSelect",
     "test": "vitest run",
     "test:watch": "vitest",

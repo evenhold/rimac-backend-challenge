@@ -4,7 +4,7 @@ import { z } from "zod";
  * Schema de validación para campos enviados.
  */
 export const CreateAppointmentSchema = z.object({
-  insureId: z
+  insuredId: z
     .string()
     .length(5, { message: "El insuredId debe tener exactamente 5 caracteres." })
     .regex(/^\d+$/, { message: "El insureId debe contener solo números." }),
