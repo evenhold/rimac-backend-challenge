@@ -196,3 +196,17 @@ functions:
           path: /appointments
           method: post
           cors: true
+
+  # ----------------------------------------------------------------------------
+  # [2] API Query Handler (REST Historical Records Listing)
+  # ----------------------------------------------------------------------------
+  query:
+    handler: .build/infra/handlers/query/handler.handler
+    description: "Synchronous REST API scanner endpoint for fetching historical policyholder records"
+    memorySize: 256 # Optimized computational sizing for rapid DynamoDB read scans
+    timeout: 10
+    events:
+      - http:
+          path: /appointments/{insuredId} # Enforces the path parameter constraint
+          method: get
+          cors: true
