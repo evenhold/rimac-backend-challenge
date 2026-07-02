@@ -1,0 +1,49 @@
+{
+  "name": "rimac-backend-challenge",
+  "version": "1.0.0",
+  "type": "module",
+  "description": "Reto Técnico Backend para Rimac y Softtek usando Node.js 24+, AWS Serverless, Kysely y Arquitectura Funcional.",
+  "main": "src/infra/handlers/ingest/handler.js",
+  "scripts": {
+    "build":"tsc",
+    "dev": "serverless offline start --reloadOnSelect",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:coverage": "vitest run --coverage",
+    "typecheck": "tsc --noEmit",
+    "lint": "biome check src",
+    "lint:fix": "biome check --write src"
+  },
+
+  "keywords": [
+    "nodejs24",
+    "aws",
+    "serverless",
+    "kysely",
+    "zod",
+    "vitest",
+    "functional-programming"
+  ],
+  "author": "Franz Victorio",
+  "license": "MIT",
+  "dependencies": {
+    "@aws-sdk/client-dynamodb": "^3.600.0",
+    "@aws-sdk/client-sns": "^3.600.0",
+    "@aws-sdk/client-sqs": "^3.600.0",
+    "@aws-sdk/lib-dynamodb": "^3.600.0",
+    "kysely": "^0.27.0",
+    "mysql2": "^3.11.0",
+    "pg": "^8.12.0",
+    "zod": "^3.23.0"
+  },
+  "devDependencies": {
+    "@biomejs/biome": "2.5.1",
+    "@types/aws-lambda": "^8.10.140",
+    "@types/node": "^24.0.0",
+    "@types/pg": "^8.11.0",
+    "serverless": "^4.0.0",
+    "serverless-offline": "^13.6.0",
+    "typescript": "^5.5.0",
+    "vitest": "^2.0.0"
+  }
+}

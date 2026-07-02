@@ -1,0 +1,31 @@
+{
+  "compilerOptions": {
+    "target": "ES2022" /* Versión de JS de salida compatible con Node 24 */,
+    "module": "NodeNext" /* Permite el uso de ESM nativo en Node */,
+    "moduleResolution": "NodeNext" /* Estrategia de resolución de módulos moderna */,
+    "outDir": "./.build" /* Directorio de salida para compilación */,
+    "rootDir": "./src" /* Directorio raíz del código fuente */,
+
+    /* Configuración Estricta de Calidad de Código */
+    "strict": true /* Activa todas las comprobaciones estrictas */,
+    "noImplicitAny": true /* Error en expresiones con tipo 'any' implícito */,
+    "strictNullChecks": true /* Validación estricta de null y undefined */,
+    "strictFunctionTypes": true /* Comprobación estricta de tipos de funciones */,
+    "noUnusedLocals": true /* Reporta error en variables locales no usadas */,
+    "noUnusedParameters": true /* Reporta error en parámetros no usados */,
+    "noImplicitReturns": true /* Error si no todas las rutas de la función retornan algo */,
+    "noFallthroughCasesInSwitch": true /* Evita errores en bloques switch de flujo continuo */,
+    "removeComments": true /* Elimina todos los comentarios al compilar a JS */,
+
+    /* Interoperabilidad y Soporte */
+    "esModuleInterop": true /* Soporte para importar módulos CommonJS de forma limpia */,
+    "skipLibCheck": true /* Omite la comprobación de tipos de archivos de declaración externos */,
+    "forceConsistentCasingInFileNames": true /* Respeta mayúsculas/minúsculas en importaciones */,
+  },
+  "include": ["src/**/*"] /* Archivos incluidos en el alcance */,
+  "exclude": [
+    "node_modules",
+    ".build",
+    "**/__tests__/*",
+  ] /* Carpetas a ignorar en producción */,
+}

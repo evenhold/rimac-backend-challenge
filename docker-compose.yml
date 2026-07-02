@@ -1,0 +1,53 @@
+services:
+  # --- EMULADOR DE AWS (LocalStack) ---
+  localstack:
+    container_name: rimac_challenge_localstack
+    image: localstack/localstack:4.4.0
+    ports:
+      - "${LOCALSTACK_PORT}:4566"
+    environment:
+      - SERVICES=dynamodb,sns,sqs,events
+      - AWS_DEFAULT_REGION=${AWS_REGION}
+    volumes:
+      - "./.localstack:/var/lib/localstack"
+    networks:
+      - rimac_network
+
+  # --- MOTOR BASE DE DATOS: PERÚ (MySQL) ---
+  mysql_pe:
+    container_name: rimac_challenge_mysql_pe
+    image: mysql:8.4
+    ports:
+      - "${MYSQL_PE_PORT}:3306"
+    environment:
+      - MYSQL_ROOT_PASSWORD=${MYSQL_PE_ROOT_PASSWORD}
+      - MYSQL_DATABASE=${MYSQL_PE_DATABASE}
+      - MYSQL_USER=${MYSQL_PE_USER}
+      - MYSQL_PASSWORD=${MYSQL_PE_PASSWORD}
+    volumes:
+      - mysql_pe_data:/var/lib/mysql
+    networks:
+      - rimac_network
+
+  # --- MOTOR BASE DE DATOS: CHILE (PostgreSQL) ---
+  postgres_cl:
+    container_name: rimac_challenge_postgres_cl
+    image: postgres:17-alpine
+    ports:
+      - "${POSTGRES_CL_PORT}:5432"
+    environment:
+      - POSTGRES_DB=${POSTGRES_CL_DATABASE}
+      - POSTGRES_USER=${POSTGRES_CL_USER}
+      - POSTGRES_PASSWORD=${POSTGRES_CL_PASSWORD}
+    volumes:
+      - postgres_cl_data:/var/lib/postgresql/data
+    networks:
+      - rimac_network
+
+volumes:
+  mysql_pe_data:
+  postgres_cl_data:
+
+networks:
+  rimac_network:
+    driver: bridge
