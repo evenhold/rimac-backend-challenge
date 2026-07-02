@@ -31,7 +31,9 @@ describe("Infrastructure Layer - Asynchronous Chile Worker Lambda", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     // Intercept database engine routing factory calls
-    vi.spyOn(kyselyClientModule, "createKyselyClient").mockReturnValue(mockDbClient as any);
+    vi.spyOn(kyselyClientModule, "createKyselyClient").mockReturnValue(
+      mockDbClient as unknown as never,
+    );
   });
 
   test("should process batches successfully and write records directly to MySQL", async () => {

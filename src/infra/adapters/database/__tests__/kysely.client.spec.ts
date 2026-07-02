@@ -1,4 +1,4 @@
-import { describe, expect, test, vi } from "vitest";
+import { describe, expect, test } from "vitest";
 import { createKyselyClient } from "../kysely.client.js";
 
 describe("Infrastructure Layer - Kysely Client Factory", () => {
@@ -34,7 +34,7 @@ describe("Infrastructure Layer - Kysely Client Factory", () => {
 
   test("should throw a defensive execution error if an unsupported country ISO bypasses type checking", () => {
     // 1. Arrange
-    const invalidContext = { countryISO: "AR" as any };
+    const invalidContext = { countryISO: "AR" as unknown as never };
 
     // 2. Act & Assert
     expect(() => createKyselyClient(invalidContext)).toThrow("Unsupported country ISO context: AR");

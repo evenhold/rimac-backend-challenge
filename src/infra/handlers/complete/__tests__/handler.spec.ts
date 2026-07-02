@@ -39,7 +39,9 @@ describe("Infrastructure Layer - Asynchronous Lifecycle Closure Lambda", () => {
     } as unknown as SQSEvent;
 
     const mockSend = vi.fn().mockResolvedValueOnce({});
-    vi.mocked(DynamoDBDocumentClient.from).mockReturnValue({ send: mockSend } as any);
+    vi.mocked(DynamoDBDocumentClient.from).mockReturnValue({
+      send: mockSend,
+    } as unknown as never);
 
     const result = await handler(mockEvent);
 

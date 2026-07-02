@@ -25,7 +25,7 @@ export const createKyselyClient = (config: DbConnectionConfig): Kysely<Database>
     });
 
     return new Kysely<Database>({
-      dialect: new MysqlDialect({ pool: mysqlPool as any }),
+      dialect: new MysqlDialect({ pool: mysqlPool as unknown as never }),
     });
   }
 
