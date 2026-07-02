@@ -210,3 +210,16 @@ functions:
           path: /appointments/{insuredId} # Enforces the path parameter constraint
           method: get
           cors: true
+
+  # ----------------------------------------------------------------------------
+  # Asynchronous Regional Worker (Peru - MySQL Target Database)
+  # ----------------------------------------------------------------------------
+  processPe:
+    handler: .build/infra/handlers/process-pe/handler.handler
+    description: "Asynchronous worker consuming from SQS_PE to persist processed records inside MySQL"
+    memorySize: 256
+    timeout: 30
+    events:
+      - sqs:
+          arn: arn:aws:sqs:us-east-1:000000000000:SQS_PE # Properties.QueueName: SQS_PE
+          batchSize: 10
