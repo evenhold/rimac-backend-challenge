@@ -31,7 +31,7 @@ export const handler = async (event: SQSEvent): Promise<SQSBatchResponse> => {
 
       // Execute atomic relational persistence using compile-time type agreements
       await db
-        .insertInto("sch_core.appointments")
+        .insertInto("appointments")
         .values({
           appointment_id: appointment.appointmentId,
           insured_id: appointment.insuredId,

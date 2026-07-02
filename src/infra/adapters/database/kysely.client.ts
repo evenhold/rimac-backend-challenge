@@ -39,6 +39,7 @@ export const createKyselyClient = (config: DbConnectionConfig): Kysely<Database>
       password: process.env.POSTGRES_CL_PASSWORD || "PASSWORD",
       max: 10,
       connectionTimeoutMillis: 2000,
+      options: "-c search_path=sch_core,public",
     });
 
     return new Kysely<Database>({

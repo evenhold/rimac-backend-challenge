@@ -49,7 +49,7 @@ describe("Infrastructure Layer - Asynchronous Peru Worker Lambda", () => {
 
     // 3. Assert
     expect(result.batchItemFailures).toHaveLength(0);
-    expect(mockInsert).toHaveBeenCalledWith("sch_core.appointments");
+    expect(mockInsert).toHaveBeenCalledWith("appointments");
     expect(mockValues).toHaveBeenCalledWith({
       appointment_id: "uuid-pe-99",
       insured_id: "00123",

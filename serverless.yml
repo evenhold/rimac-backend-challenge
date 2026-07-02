@@ -21,19 +21,21 @@ package:
 
 provider:
   name: aws
-  # Native runtime engine matching our modern development environment.
   runtime: nodejs20.x
-  region: ${env:AWS_REGION, 'us-east-1'}
+  region: "us-east-1"
   stage: ${env:STAGE, 'dev'}
-
-  # Global Environment Variables injected into every running AWS Lambda function context.
   environment:
     NODE_ENV: ${env:NODE_ENV, 'development'}
     DYNAMODB_TABLE: ${self:service}-appointments-${self:provider.stage}
     SNS_TOPIC_ARN:
-      Ref: AppointmentTopic # Clean editor-friendly string format that resolves the SNS Arn dynamically.
-    DYNAMODB_ENDPOINT: http://host.docker.internal:4566
-    SNS_ENDPOINT: http://host.docker.internal:4566
+      Ref: AppointmentTopic
+    DYNAMODB_ENDPOINT: ${env:DYNAMODB_ENDPOINT, 'http://host.docker.internal:4566'}
+    SNS_ENDPOINT: ${env:SNS_ENDPOINT, 'http://host.docker.internal:4566'}
+    MYSQL_PE_HOST: ${env:MYSQL_PE_HOST, 'host.docker.internal'}
+    MYSQL_PE_PORT: ${env:MYSQL_PE_PORT, '3306'}
+    MYSQL_PE_DATABASE: ${env:MYSQL_PE_DATABASE, 'medical_pe_db'}
+    MYSQL_PE_USER: ${env:MYSQL_PE_USER, 'rimac_user_pe'}
+    MYSQL_PE_PASSWORD: ${env:MYSQL_PE_PASSWORD, 'rimac_secure_pass_pe'} # Sincronizado con tu password maestro
 
   # Principle of Least Privilege: Grants minimal IAM execution roles to ensure tight system security.
   iam:
