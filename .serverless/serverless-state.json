@@ -1,0 +1,487 @@
+{
+  "service": {
+    "service": "rimac-backend-challenge",
+    "serviceObject": {
+      "name": "rimac-backend-challenge"
+    },
+    "provider": {
+      "name": "aws",
+      "runtime": "nodejs24.x",
+      "region": "us-east-1",
+      "stage": "dev",
+      "environment": {
+        "NODE_ENV": "development",
+        "DYNAMODB_TABLE": "rimac-backend-challenge-appointments-dev",
+        "SNS_TOPIC_ARN": {
+          "Ref": "AppointmentTopic"
+        }
+      },
+      "iam": {
+        "role": {
+          "statements": [
+            {
+              "Effect": "Allow",
+              "Action": [
+                "dynamodb:PutItem",
+                "dynamodb:GetItem",
+                "dynamodb:Query",
+                "dynamodb:UpdateItem"
+              ],
+              "Resource": {
+                "Fn::GetAtt": [
+                  "AppointmentsTable",
+                  "Arn"
+                ]
+              }
+            },
+            {
+              "Effect": "Allow",
+              "Action": [
+                "sns:Publish"
+              ],
+              "Resource": {
+                "Ref": "AppointmentTopic"
+              }
+            }
+          ]
+        }
+      },
+      "versionFunctions": true,
+      "compiledCloudFormationTemplate": {
+        "AWSTemplateFormatVersion": "2010-09-09",
+        "Description": "The AWS CloudFormation template for this Serverless application",
+        "Resources": {
+          "ServerlessDeploymentBucket": {
+            "Type": "AWS::S3::Bucket",
+            "Properties": {
+              "BucketEncryption": {
+                "ServerSideEncryptionConfiguration": [
+                  {
+                    "ServerSideEncryptionByDefault": {
+                      "SSEAlgorithm": "AES256"
+                    }
+                  }
+                ]
+              }
+            }
+          },
+          "ServerlessDeploymentBucketPolicy": {
+            "Type": "AWS::S3::BucketPolicy",
+            "Properties": {
+              "Bucket": {
+                "Ref": "ServerlessDeploymentBucket"
+              },
+              "PolicyDocument": {
+                "Statement": [
+                  {
+                    "Action": "s3:*",
+                    "Effect": "Deny",
+                    "Principal": "*",
+                    "Resource": [
+                      {
+                        "Fn::Join": [
+                          "",
+                          [
+                            "arn:",
+                            {
+                              "Ref": "AWS::Partition"
+                            },
+                            ":s3:::",
+                            {
+                              "Ref": "ServerlessDeploymentBucket"
+                            },
+                            "/*"
+                          ]
+                        ]
+                      },
+                      {
+                        "Fn::Join": [
+                          "",
+                          [
+                            "arn:",
+                            {
+                              "Ref": "AWS::Partition"
+                            },
+                            ":s3:::",
+                            {
+                              "Ref": "ServerlessDeploymentBucket"
+                            }
+                          ]
+                        ]
+                      }
+                    ],
+                    "Condition": {
+                      "Bool": {
+                        "aws:SecureTransport": false
+                      }
+                    }
+                  }
+                ]
+              }
+            }
+          },
+          "AppointmentsTable": {
+            "Type": "AWS::DynamoDB::Table",
+            "Properties": {
+              "TableName": "rimac-backend-challenge-appointments-dev",
+              "AttributeDefinitions": [
+                {
+                  "AttributeName": "insuredId",
+                  "AttributeType": "S"
+                },
+                {
+                  "AttributeName": "appointmentId",
+                  "AttributeType": "S"
+                }
+              ],
+              "KeySchema": [
+                {
+                  "AttributeName": "insuredId",
+                  "KeyType": "HASH"
+                },
+                {
+                  "AttributeName": "appointmentId",
+                  "KeyType": "RANGE"
+                }
+              ],
+              "BillingMode": "PAY_PER_REQUEST"
+            }
+          },
+          "AppointmentTopic": {
+            "Type": "AWS::SNS::Topic",
+            "Properties": {
+              "TopicName": "rimac-backend-challenge-events-topic-dev"
+            }
+          },
+          "PeruQueue": {
+            "Type": "AWS::SQS::Queue",
+            "Properties": {
+              "QueueName": "SQS_PE"
+            }
+          },
+          "ChileQueue": {
+            "Type": "AWS::SQS::Queue",
+            "Properties": {
+              "QueueName": "SQS_CL"
+            }
+          },
+          "FinalQueue": {
+            "Type": "AWS::SQS::Queue",
+            "Properties": {
+              "QueueName": "SQS_FINAL"
+            }
+          },
+          "PeruSubscription": {
+            "Type": "AWS::SNS::Subscription",
+            "Properties": {
+              "TopicArn": {
+                "Ref": "AppointmentTopic"
+              },
+              "Endpoint": {
+                "Fn::GetAtt": [
+                  "PeruQueue",
+                  "Arn"
+                ]
+              },
+              "Protocol": "sqs",
+              "FilterPolicy": {
+                "countryISO": [
+                  "PE"
+                ]
+              }
+            }
+          },
+          "ChileSubscription": {
+            "Type": "AWS::SNS::Subscription",
+            "Properties": {
+              "TopicArn": {
+                "Ref": "AppointmentTopic"
+              },
+              "Endpoint": {
+                "Fn::GetAtt": [
+                  "ChileQueue",
+                  "Arn"
+                ]
+              },
+              "Protocol": "sqs",
+              "FilterPolicy": {
+                "countryISO": [
+                  "CL"
+                ]
+              }
+            }
+          },
+          "EventBridgeToSqsRule": {
+            "Type": "AWS::Events::Rule",
+            "Properties": {
+              "Description": "Captures appointment compliance events and routes them safely into SQS Final",
+              "EventPattern": {
+                "source": [
+                  "custom.appointments"
+                ],
+                "detail-type": [
+                  "AppointmentConfirmed"
+                ]
+              },
+              "Targets": [
+                {
+                  "Arn": {
+                    "Fn::GetAtt": [
+                      "FinalQueue",
+                      "Arn"
+                    ]
+                  },
+                  "Id": "FinalQueueTarget"
+                }
+              ]
+            }
+          }
+        },
+        "Outputs": {
+          "ServerlessDeploymentBucketName": {
+            "Value": {
+              "Ref": "ServerlessDeploymentBucket"
+            },
+            "Export": {
+              "Name": "sls-rimac-backend-challenge-dev-ServerlessDeploymentBucketName"
+            }
+          }
+        }
+      },
+      "coreCloudFormationTemplate": {
+        "AWSTemplateFormatVersion": "2010-09-09",
+        "Description": "The AWS CloudFormation template for this Serverless application",
+        "Resources": {
+          "ServerlessDeploymentBucket": {
+            "Type": "AWS::S3::Bucket",
+            "Properties": {
+              "BucketEncryption": {
+                "ServerSideEncryptionConfiguration": [
+                  {
+                    "ServerSideEncryptionByDefault": {
+                      "SSEAlgorithm": "AES256"
+                    }
+                  }
+                ]
+              }
+            }
+          },
+          "ServerlessDeploymentBucketPolicy": {
+            "Type": "AWS::S3::BucketPolicy",
+            "Properties": {
+              "Bucket": {
+                "Ref": "ServerlessDeploymentBucket"
+              },
+              "PolicyDocument": {
+                "Statement": [
+                  {
+                    "Action": "s3:*",
+                    "Effect": "Deny",
+                    "Principal": "*",
+                    "Resource": [
+                      {
+                        "Fn::Join": [
+                          "",
+                          [
+                            "arn:",
+                            {
+                              "Ref": "AWS::Partition"
+                            },
+                            ":s3:::",
+                            {
+                              "Ref": "ServerlessDeploymentBucket"
+                            },
+                            "/*"
+                          ]
+                        ]
+                      },
+                      {
+                        "Fn::Join": [
+                          "",
+                          [
+                            "arn:",
+                            {
+                              "Ref": "AWS::Partition"
+                            },
+                            ":s3:::",
+                            {
+                              "Ref": "ServerlessDeploymentBucket"
+                            }
+                          ]
+                        ]
+                      }
+                    ],
+                    "Condition": {
+                      "Bool": {
+                        "aws:SecureTransport": false
+                      }
+                    }
+                  }
+                ]
+              }
+            }
+          }
+        },
+        "Outputs": {
+          "ServerlessDeploymentBucketName": {
+            "Value": {
+              "Ref": "ServerlessDeploymentBucket"
+            }
+          }
+        }
+      }
+    },
+    "plugins": [
+      "serverless-localstack"
+    ],
+    "pluginsData": {},
+    "functions": {},
+    "resources": {
+      "Resources": {
+        "AppointmentsTable": {
+          "Type": "AWS::DynamoDB::Table",
+          "Properties": {
+            "TableName": "rimac-backend-challenge-appointments-dev",
+            "AttributeDefinitions": [
+              {
+                "AttributeName": "insuredId",
+                "AttributeType": "S"
+              },
+              {
+                "AttributeName": "appointmentId",
+                "AttributeType": "S"
+              }
+            ],
+            "KeySchema": [
+              {
+                "AttributeName": "insuredId",
+                "KeyType": "HASH"
+              },
+              {
+                "AttributeName": "appointmentId",
+                "KeyType": "RANGE"
+              }
+            ],
+            "BillingMode": "PAY_PER_REQUEST"
+          }
+        },
+        "AppointmentTopic": {
+          "Type": "AWS::SNS::Topic",
+          "Properties": {
+            "TopicName": "rimac-backend-challenge-events-topic-dev"
+          }
+        },
+        "PeruQueue": {
+          "Type": "AWS::SQS::Queue",
+          "Properties": {
+            "QueueName": "SQS_PE"
+          }
+        },
+        "ChileQueue": {
+          "Type": "AWS::SQS::Queue",
+          "Properties": {
+            "QueueName": "SQS_CL"
+          }
+        },
+        "FinalQueue": {
+          "Type": "AWS::SQS::Queue",
+          "Properties": {
+            "QueueName": "SQS_FINAL"
+          }
+        },
+        "PeruSubscription": {
+          "Type": "AWS::SNS::Subscription",
+          "Properties": {
+            "TopicArn": {
+              "Ref": "AppointmentTopic"
+            },
+            "Endpoint": {
+              "Fn::GetAtt": [
+                "PeruQueue",
+                "Arn"
+              ]
+            },
+            "Protocol": "sqs",
+            "FilterPolicy": {
+              "countryISO": [
+                "PE"
+              ]
+            }
+          }
+        },
+        "ChileSubscription": {
+          "Type": "AWS::SNS::Subscription",
+          "Properties": {
+            "TopicArn": {
+              "Ref": "AppointmentTopic"
+            },
+            "Endpoint": {
+              "Fn::GetAtt": [
+                "ChileQueue",
+                "Arn"
+              ]
+            },
+            "Protocol": "sqs",
+            "FilterPolicy": {
+              "countryISO": [
+                "CL"
+              ]
+            }
+          }
+        },
+        "EventBridgeToSqsRule": {
+          "Type": "AWS::Events::Rule",
+          "Properties": {
+            "Description": "Captures appointment compliance events and routes them safely into SQS Final",
+            "EventPattern": {
+              "source": [
+                "custom.appointments"
+              ],
+              "detail-type": [
+                "AppointmentConfirmed"
+              ]
+            },
+            "Targets": [
+              {
+                "Arn": {
+                  "Fn::GetAtt": [
+                    "FinalQueue",
+                    "Arn"
+                  ]
+                },
+                "Id": "FinalQueueTarget"
+              }
+            ]
+          }
+        }
+      },
+      "Outputs": {}
+    },
+    "configValidationMode": "warn",
+    "serviceFilename": "serverless.yml",
+    "initialServerlessConfig": {
+      "service": "rimac-backend-challenge",
+      "plugins": {
+        "$ref": "$[\"service\"][\"plugins\"]"
+      },
+      "package": {
+        "individually": true,
+        "artifactsS3KeyDirname": "serverless/rimac-backend-challenge/dev/code-artifacts",
+        "artifactDirectoryName": "serverless/rimac-backend-challenge/dev/1782979872758-2026-07-02T08:11:12.758Z"
+      },
+      "provider": {
+        "$ref": "$[\"service\"][\"provider\"]"
+      },
+      "resources": {
+        "$ref": "$[\"service\"][\"resources\"]"
+      }
+    },
+    "layers": {},
+    "isDashboardMonitoringPreconfigured": false
+  },
+  "package": {
+    "individually": true,
+    "artifactDirectoryName": "serverless/rimac-backend-challenge/dev/1782979872758-2026-07-02T08:11:12.758Z",
+    "artifact": ""
+  }
+}

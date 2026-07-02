@@ -1,0 +1,146 @@
+# ==============================================================================
+# SERVICE CONFIGURATION & INFRASTRUCTURE AS CODE (IaC)
+# Challenge: Rimac & Softtek Medical Appointment System
+# Paradigm: Event-Driven Architecture (EDA) & Clean Architecture
+# ==============================================================================
+
+service: rimac-backend-challenge
+
+plugins:
+  - serverless-localstack
+package:
+  # Optimization Requirement: Packages each Lambda function into an independent ZIP bundle.
+  # This avoids dragging unused code or heavy drivers between lambdas, reducing size and Cold Starts.
+  individually: true
+
+provider:
+  name: aws
+  # Native runtime engine matching our modern development environment.
+  runtime: nodejs24.x
+  region: ${env:AWS_REGION, 'us-east-1'}
+  stage: ${env:STAGE, 'dev'}
+
+  # Global Environment Variables injected into every running AWS Lambda function context.
+  environment:
+    NODE_ENV: ${env:NODE_ENV, 'development'}
+    DYNAMODB_TABLE: ${self:service}-appointments-${self:provider.stage}
+    SNS_TOPIC_ARN:
+      Ref: AppointmentTopic # Clean editor-friendly string format that resolves the SNS Arn dynamically.
+
+  # Principle of Least Privilege: Grants minimal IAM execution roles to ensure tight system security.
+  iam:
+    role:
+      statements:
+        # 1. DynamoDB Permissions: Allows the core handlers to Create, Read, and Update appointment states.
+        - Effect: Allow
+          Action:
+            - dynamodb:PutItem
+            - dynamodb:GetItem
+            - dynamodb:Query
+            - dynamodb:UpdateItem
+          Resource:
+            Fn::GetAtt: [AppointmentsTable, Arn]
+        # 2. Amazon SNS Permissions: Allows the ingest handler to fan-out transactional events asynchronously.
+        - Effect: Allow
+          Action:
+            - sns:Publish
+          Resource:
+            Ref: AppointmentTopic
+
+# ==============================================================================
+# PHYSICAL AWS INFRASTRUCTURE RESOURCES (CloudFormation Declarations)
+# ==============================================================================
+resources:
+  Resources:
+    # --------------------------------------------------------------------------
+    # [1] Amazon DynamoDB Table: Transactional State Store
+    # --------------------------------------------------------------------------
+    AppointmentsTable:
+      Type: AWS::DynamoDB::Table
+      Properties:
+        TableName: ${self:provider.environment.DYNAMODB_TABLE}
+        AttributeDefinitions:
+          - AttributeName: insuredId
+            AttributeType: S
+          - AttributeName: appointmentId
+            AttributeType: S
+        KeySchema:
+          - AttributeName: insuredId
+            KeyType: HASH # Partition Key (PK) -> Highly optimized for the GET /appointments/{id} endpoint scanner.
+          - AttributeName: appointmentId
+            KeyType: RANGE # Sort Key (SK) -> Permits a single user to maintain multiple appointment records safely.
+        BillingMode: PAY_PER_REQUEST # Serverless on-demand scaling model to minimize idle cloud resource costs.
+
+    # --------------------------------------------------------------------------
+    # [2] Amazon SNS Topic: Decoupled Fan-Out Messaging Channel
+    # --------------------------------------------------------------------------
+    AppointmentTopic:
+      Type: AWS::SNS::Topic
+      Properties:
+        TopicName: ${self:service}-events-topic-${self:provider.stage}
+
+    # --------------------------------------------------------------------------
+    # [3] Amazon SQS Channels: Asynchronous Ingestion & Processing Queues
+    # --------------------------------------------------------------------------
+    PeruQueue:
+      Type: AWS::SQS::Queue
+      Properties:
+        QueueName: SQS_PE # Dedicated queue to regulate data traffic flowing toward Peru's relational store.
+
+    ChileQueue:
+      Type: AWS::SQS::Queue
+      Properties:
+        QueueName: SQS_CL # Dedicated queue to regulate data traffic flowing toward Chile's relational store.
+
+    FinalQueue:
+      Type: AWS::SQS::Queue
+      Properties:
+        QueueName: SQS_FINAL # Lifecycle loop closure queue capturing EventBridge synchronization signals.
+
+    # --------------------------------------------------------------------------
+    # [4] Amazon SNS Subscriptions with Attribute Message Filtering
+    # --------------------------------------------------------------------------
+    # Enforces the required geographical routing boundaries automatically at the cloud level.
+    # The application lambdas never inspect routing parameters manually; SNS does the dispatch.
+    PeruSubscription:
+      Type: AWS::SNS::Subscription
+      Properties:
+        TopicArn:
+          Ref: AppointmentTopic
+        Endpoint:
+          Fn::GetAtt: [PeruQueue, Arn]
+        Protocol: sqs
+        FilterPolicy:
+          countryISO:
+            - PE # Only routes events explicitly containing the 'PE' attribute metadata to SQS_PE.
+
+    ChileSubscription:
+      Type: AWS::SNS::Subscription
+      Properties:
+        TopicArn:
+          Ref: AppointmentTopic
+        Endpoint:
+          Fn::GetAtt: [ChileQueue, Arn]
+        Protocol: sqs
+        FilterPolicy:
+          countryISO:
+            - CL # Only routes events explicitly containing the 'CL' attribute metadata to SQS_CL.
+
+    # --------------------------------------------------------------------------
+    # [5] Amazon EventBridge Rule: Asynchronous Lifecycle Router
+    # --------------------------------------------------------------------------
+    # Acts as the asynchronous loop closure mechanism requested in the architecture diagram.
+    # It intercepts compliance tokens emitted by country workers and forwards them to SQS Final.
+    EventBridgeToSqsRule:
+      Type: AWS::Events::Rule
+      Properties:
+        Description: "Captures appointment compliance events and routes them safely into SQS Final"
+        EventPattern:
+          source:
+            - "custom.appointments"
+          detail-type:
+            - "AppointmentConfirmed"
+        Targets:
+          - Arn:
+              Fn::GetAtt: [FinalQueue, Arn]
+            Id: "FinalQueueTarget"

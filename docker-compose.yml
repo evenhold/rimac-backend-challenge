@@ -6,7 +6,7 @@ services:
     ports:
       - "${LOCALSTACK_PORT}:4566"
     environment:
-      - SERVICES=dynamodb,sns,sqs,events
+      - SERVICES=dynamodb,sns,sqs,events,cloudformation
       - AWS_DEFAULT_REGION=${AWS_REGION}
     volumes:
       - "./.localstack:/var/lib/localstack"

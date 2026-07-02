@@ -1,3 +1,5 @@
 allowBuilds:
+  aws-sdk: true
+  es5-ext: true
   esbuild: true
   serverless: true
