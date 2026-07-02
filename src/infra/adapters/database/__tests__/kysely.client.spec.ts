@@ -13,7 +13,7 @@ describe("Infrastructure Layer - Kysely Client Factory", () => {
     expect(client).toBeDefined();
 
     // Compile a test query to verify MySQL backtick (`) syntax compilation behavior
-    const compiledQuery = client.selectFrom("appointments").selectAll().compile();
+    const compiledQuery = client.selectFrom("sch_core.appointments").selectAll().compile();
     expect(compiledQuery.sql).toContain("`appointments`");
   });
 
@@ -28,7 +28,7 @@ describe("Infrastructure Layer - Kysely Client Factory", () => {
     expect(client).toBeDefined();
 
     // Compile a test query to verify PostgreSQL double quote (") syntax compilation behavior
-    const compiledQuery = client.selectFrom("appointments").selectAll().compile();
+    const compiledQuery = client.selectFrom("sch_core.appointments").selectAll().compile();
     expect(compiledQuery.sql).toContain('"appointments"');
   });
 

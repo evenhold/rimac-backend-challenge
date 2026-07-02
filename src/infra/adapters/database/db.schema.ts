@@ -18,5 +18,5 @@ export interface AppointmentsTable {
  */
 
 export interface Database {
-  readonly appointments: AppointmentsTable;
+  readonly "sch_core.appointments": AppointmentsTable;
 }
