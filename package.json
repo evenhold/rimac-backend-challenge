@@ -8,6 +8,8 @@
     "build": "tsc",
     "dev": "serverless offline start --reloadOnSelect",
     "infra:deploy": "serverless deploy --stage dev",
+    "infra:check-tables": "docker exec -it rimac_challenge_localstack awslocal dynamodb list-tables",
+    "infra:check-queues": "docker exec -it rimac_challenge_localstack awslocal sqs list-queues",
     "test": "vitest run",
     "test:watch": "vitest",
     "test:coverage": "vitest run --coverage",

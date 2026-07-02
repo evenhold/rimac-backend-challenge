@@ -85,12 +85,31 @@ resources:
     PeruQueue:
       Type: AWS::SQS::Queue
       Properties:
-        QueueName: SQS_PE # Dedicated queue to regulate data traffic flowing toward Peru's relational store.
+        QueueName: SQS_PE
+        # RedrivePolicy connects this main queue to its dedicated Dead Letter Queue (DLQ)
+        RedrivePolicy:
+          deadLetterTargetArn:
+            Fn::GetAtt: [PeruQueueDLQ, Arn]
+          maxReceiveCount: 3 # Maximum retries before moving the failing message to the DLQ
+
+    PeruQueueDLQ:
+      Type: AWS::SQS::Queue
+      Properties:
+        QueueName: SQS_PE_DLQ # Holds poisoned or unprocessable messages for Peru's worker
 
     ChileQueue:
       Type: AWS::SQS::Queue
       Properties:
-        QueueName: SQS_CL # Dedicated queue to regulate data traffic flowing toward Chile's relational store.
+        QueueName: SQS_CL
+        RedrivePolicy:
+          deadLetterTargetArn:
+            Fn::GetAtt: [ChileQueueDLQ, Arn]
+          maxReceiveCount: 3
+
+    ChileQueueDLQ:
+      Type: AWS::SQS::Queue
+      Properties:
+        QueueName: SQS_CL_DLQ # Holds poisoned or unprocessable messages
 
     FinalQueue:
       Type: AWS::SQS::Queue

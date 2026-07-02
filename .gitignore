@@ -2,3 +2,4 @@ node_modules
 .localstack
 .build
 .env
+.serverless
