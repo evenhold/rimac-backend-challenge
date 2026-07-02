@@ -245,3 +245,16 @@ functions:
       - sqs:
           arn: arn:aws:sqs:us-east-1:000000000000:SQS_CL # Properties.QueueName: SQS_CL
           batchSize: 10
+
+  # ----------------------------------------------------------------------------
+  # Asynchronous Lifecycle Synchronizer (DynamoDB State Closer)
+  # ----------------------------------------------------------------------------
+  complete:
+    handler: .build/infra/handlers/complete/handler.handler
+    description: "Asynchronous worker consuming from SQS_FINAL to finalize and close DynamoDB appointment state records into completed"
+    memorySize: 256
+    timeout: 30
+    events:
+      - sqs:
+          arn: arn:aws:sqs:us-east-1:000000000000:SQS_FINAL
+          batchSize: 10
