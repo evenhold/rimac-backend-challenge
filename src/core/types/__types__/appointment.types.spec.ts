@@ -5,7 +5,7 @@ describe("Core domain - CreateAppointmentSchema validation", () => {
   test("Should accept a completely valid payload with countryISO PE", () => {
     const validPayload = {
       insuredId: "00123",
-      scheduledId: 45,
+      scheduleId: 45,
       countryISO: "PE",
     };
 
@@ -17,7 +17,7 @@ describe("Core domain - CreateAppointmentSchema validation", () => {
   test("Should accept a completely valid payload with countryISO CL", () => {
     const validPayload = {
       insuredId: "00123",
-      scheduledId: 45,
+      scheduleId: 45,
       countryISO: "CL",
     };
 

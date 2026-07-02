@@ -9,7 +9,7 @@ export const CreateAppointmentSchema = z.object({
     .length(5, { message: "El insuredId debe tener exactamente 5 caracteres." })
     .regex(/^\d+$/, { message: "El insureId debe contener solo números." }),
 
-  scheduledId: z
+  scheduleId: z
     .number({ required_error: "El scheduledId es obligatorio." })
     .int({ message: "El scheduledId debe ser un número entero" })
     .positive({ message: "El scheduledId debe ser un número positivo" }),
