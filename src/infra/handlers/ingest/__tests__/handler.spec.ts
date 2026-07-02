@@ -1,4 +1,4 @@
-import { describe, test, expect } from "vitest";
+import { describe, expect, test } from "vitest";
 import { formatLog, type ServerConfig } from "../handler";
 
 describe("Handler Ingest - Prueba Inicial", () => {
