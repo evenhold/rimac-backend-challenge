@@ -6,10 +6,14 @@ services:
     ports:
       - "${LOCALSTACK_PORT}:4566"
     environment:
-      - SERVICES=dynamodb,sns,sqs,events,cloudformation
+      - SERVICES=dynamodb,sns,sqs,events,cloudformation,lambda,logs,apigateway,iam
       - AWS_DEFAULT_REGION=${AWS_REGION}
+      # ⚠️ NUEVO: Obliga a LocalStack a inyectar host.docker.internal dentro de cada contenedor de Lambda en Linux
+      - LAMBDA_DOCKER_FLAGS=--add-host host.docker.internal:172.17.0.1
     volumes:
       - "./.localstack:/var/lib/localstack"
+      - "/var/run/docker.sock:/var/run/docker.sock"
+
     networks:
       - rimac_network
 

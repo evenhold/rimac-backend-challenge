@@ -8,15 +8,21 @@ service: rimac-backend-challenge
 
 plugins:
   - serverless-localstack
+  - serverless-offline
+
 package:
-  # Optimization Requirement: Packages each Lambda function into an independent ZIP bundle.
-  # This avoids dragging unused code or heavy drivers between lambdas, reducing size and Cold Starts.
-  individually: true
+  # En Serverless v3 con mountCode activo, desactivamos empaquetado individual
+  # para que LocalStack tome la estructura virtualizada directamente desde Docker.
+  individually: false
+  patterns:
+    - ".build/**"
+    - "!node_modules/**"
+    - "!src/**"
 
 provider:
   name: aws
   # Native runtime engine matching our modern development environment.
-  runtime: nodejs24.x
+  runtime: nodejs20.x
   region: ${env:AWS_REGION, 'us-east-1'}
   stage: ${env:STAGE, 'dev'}
 
@@ -26,6 +32,8 @@ provider:
     DYNAMODB_TABLE: ${self:service}-appointments-${self:provider.stage}
     SNS_TOPIC_ARN:
       Ref: AppointmentTopic # Clean editor-friendly string format that resolves the SNS Arn dynamically.
+    DYNAMODB_ENDPOINT: http://host.docker.internal:4566
+    SNS_ENDPOINT: http://host.docker.internal:4566
 
   # Principle of Least Privilege: Grants minimal IAM execution roles to ensure tight system security.
   iam:
@@ -163,3 +171,28 @@ resources:
           - Arn:
               Fn::GetAtt: [FinalQueue, Arn]
             Id: "FinalQueueTarget"
+
+custom:
+  localstack:
+    stages:
+      - dev
+    lambda:
+      # 💡 Obligamos a que use el montaje de volumen local en tiempo real
+      mountCode: true
+# ==============================================================================
+# AWS LAMBDA FUNCTIONS DECLARATION (Serverless Entrypoints)
+# ==============================================================================
+functions:
+  # ----------------------------------------------------------------------------
+  # [1] API Ingest Handler (REST Entrypoint)
+  # ----------------------------------------------------------------------------
+  ingest:
+    handler: .build/infra/handlers/ingest/handler.handler
+    description: "Synchronous REST API ingress endpoint for medical appointment registration"
+    memorySize: 256
+    timeout: 10
+    events:
+      - http:
+          path: /appointments
+          method: post
+          cors: true
