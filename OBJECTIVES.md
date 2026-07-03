@@ -52,3 +52,9 @@ Durante la fase de integración de herramientas visuales, se identificó y docum
   - **Plan de Acción (Próximo Sprint):**
     1. Consolidar el archivo `API_USAGE.md` como la única fuente de verdad operativa para pruebas rápidas dentro del repositorio, eliminando código basura del backend destinado a servir HTML estático.
     2. En el despliegue de Producción Real en AWS, configurar **AWS API Gateway** para que importe el archivo estándar `openapi.yaml` directamente, renderizando el portal de desarrollador en la nube de forma nativa sin consumir recursos de cómputo en AWS Lambda.
+
+- [x] **Estrategia de Control de Costos en Infraestructura Multimotor (AWS Real Cloud)**
+- **Problema:** El reto técnico exige la convivencia simétrica de múltiples motores de bases de datos relacionales (Amazon RDS para MySQL 8.4 y PostgreSQL 17) junto con los servicios NoSQL y de mensajería elástica. Realizar un despliegue directo sobre una cuenta comercial de AWS para una etapa de evaluación temprana generaría costos fijos de facturación innecesarios por recursos inactivos en la nube.
+- **Mitigación Adoptada:** Siguiendo las buenas prácticas corporativas de optimización de costos (_FinOps_) y DevSecOps, **se encapsuló y certificó el 100% de la infraestructura elástica de forma local utilizando LocalStack y Docker**. Toda la red de CloudFormation (DynamoDB, SNS Fan-out, colas SQS, DLQ y reglas de EventBridge) opera de manera idéntica a la nube real.
+- **Plan de Acción (Próximo Sprint):**
+  1. Utilizar los scripts automatizados de Infraestructura como Código (`pnpm infra:deploy`) integrados en este repositorio para ejecutar el aprovisionamiento directo en los entornos reales de la compañía (Staging / Production) mediante pipelines CI/CD automatizados (GitHub Actions / AWS CodePipeline), asumiendo que los clusters de RDS compartidos ya se encuentran encendidos por la organización.
