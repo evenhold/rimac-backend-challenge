@@ -222,6 +222,8 @@ El archivo `serverless.yml` utiliza la directiva nativa `useDotenv: true` de la 
   ```
   _Limpia los mensajes atascados o con fallos del pasado en LocalStack para reiniciar pruebas en limpio._
 
+> **Nota de Compatibilidad del Sistema Operativo:** Todos los comandos de consola provistos en esta guía (scripts de Docker, truncados, inyecciones de bases de datos y tuberías de rastreo `cURL`) están optimizados y estructurados exclusivamente para entornos basados en **Debian / Linux** (incluyendo distribuciones como Ubuntu o entornos WSL en Windows). Si utilizas una terminal nativa de Windows (PowerShell o CMD), recuerda adaptar los caracteres de escape de strings y las variables de entorno al formato correspondiente de tu sistema.
+
 ---
 
 ## Pruebas de Integración con cURL
