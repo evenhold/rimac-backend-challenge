@@ -1,0 +1,190 @@
+openapi: 3.0.3
+info:
+  title: API de Citas Médicas Regionales - Reto AWS-Rimac
+  description: |
+    API de alto rendimiento dirigida por eventos para la gestión de citas médicas en Perú y Chile.
+    Garantiza consistencia eventual a través de DynamoDB, SNS/SQS, EventBridge y bases de datos relacionales regionales.
+  version: 1.0.0
+servers:
+  - url: http://localhost:3000/dev
+    description: Entorno de Desarrollo Local (Serverless Offline)
+paths:
+  /appointments:
+    post:
+      summary: Ingesta y validación de nueva cita médica
+      description: |
+        Recibe la solicitud de cita, la valida sintácticamente con Zod, genera un ID único,
+        registra el estado inicial como `pending` en DynamoDB y publica el evento en Amazon SNS para su distribución regional.
+      operationId: createAppointment
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateAppointmentPayload"
+      responses:
+        "201":
+          description: Cita recibida, registrada en DynamoDB y en proceso de distribución asíncrona.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AppointmentIngestedResponse"
+        "400":
+          description: Error de validación en los datos enviados (Zod Validation Error).
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ValidationErrorResponse"
+        "500":
+          description: Error interno del servidor al procesar la ingesta.
+
+  /appointments/{insuredId}:
+    get:
+      summary: Obtener historial de citas de un asegurado
+      description: |
+        Endpoint síncrono de lectura que escanea y recupera los registros históricos de citas de un
+        asegurado específico directamente desde la tabla de DynamoDB utilizando su `insuredId`.
+      operationId: getAppointmentsByInsured
+      parameters:
+        - name: insuredId
+          in: path
+          required: true
+          description: Identificador único del asegurado (exactamente 5 caracteres numéricos).
+          schema:
+            type: string
+            minLength: 5
+            maxLength: 5
+            pattern: '^\d+$'
+          example: "12345"
+      responses:
+        "200":
+          description: Listado histórico de citas obtenido exitosamente.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/AppointmentEntity"
+        "400":
+          description: Parámetro de ruta inválido.
+        "404":
+          description: No se encontraron registros para el asegurado provisto.
+        "500":
+          description: Error interno del servidor al consultar DynamoDB.
+
+components:
+  schemas:
+    CreateAppointmentPayload:
+      type: object
+      required:
+        - insuredId
+        - scheduleId
+        - countryISO
+      properties:
+        insuredId:
+          type: string
+          minLength: 5
+          maxLength: 5
+          pattern: '^\d+$'
+          example: "12345"
+          description: Identificador del asegurado. Debe tener exactamente 5 caracteres y contener solo números.
+        scheduleId:
+          type: integer
+          minimum: 1
+          example: 4502
+          description: Identificador del horario de la cita. Debe ser un número entero y positivo.
+        countryISO:
+          type: string
+          enum: [PE, CL]
+          example: "PE"
+          description: Código geográfico que define el enrutamiento SNS Fan-out hacia la base de datos correspondiente (MySQL o PostgreSQL).
+
+    AppointmentIngestedResponse:
+      type: object
+      properties:
+        message:
+          type: string
+          example: "Appointment created successfully and queued for processing."
+        data:
+          $ref: "#/components/schemas/AppointmentEntity"
+
+    AppointmentEntity:
+      type: object
+      description: Estructura del registro de la cita médica en el ecosistema.
+      properties:
+        id:
+          type: string
+          format: uuid
+          example: "550e8400-e29b-41d4-a716-446655440000"
+        insuredId:
+          type: string
+          example: "12345"
+        scheduleId:
+          type: integer
+          example: 4502
+        countryISO:
+          type: string
+          enum: [PE, CL]
+          example: "PE"
+        status:
+          type: string
+          enum: [pending, completed]
+          example: "pending"
+          description: Estado del ciclo de vida de la cita (actualizado de forma asíncrona por el worker final).
+        createdAt:
+          type: string
+          format: date-time
+          example: "2026-07-02T23:50:00Z"
+        updatedAt:
+          type: string
+          format: date-time
+          example: "2026-07-02T23:54:12Z"
+
+    ValidationErrorResponse:
+      type: object
+      description: Estructura de error sintáctico devuelta por las restricciones de Zod.
+      required:
+        - message
+        - errors
+      properties:
+        message:
+          type: string
+          example: "Validation Error"
+        errors:
+          type: object
+          required:
+            - _errors
+          properties:
+            _errors:
+              type: array
+              description: Errores generales globales del payload (fuera de campos específicos).
+              items:
+                type: string
+              example: []
+            insuredId:
+              type: object
+              required:
+                - _errors
+              properties:
+                _errors:
+                  type: array
+                  description: Mensajes de validación específicos acumulados para el campo insuredId.
+                  items:
+                    type: string
+                  example: ["The insuredId must be exactly 5 characters long."]
+            scheduleId:
+              type: object
+              properties:
+                _errors:
+                  type: array
+                  items:
+                    type: string
+                  example: ["The scheduleId must be a positive integer."]
+            countryISO:
+              type: object
+              properties:
+                _errors:
+                  type: array
+                  items:
+                    type: string
+                  example: ["Invalid enum value. Expected 'PE' | 'CL'"]
