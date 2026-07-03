@@ -313,6 +313,32 @@ Si prefieres explorar, validar e interactuar con la especificación de la API si
 
 ---
 
+## Evidencias Operativas de Funcionamiento
+
+Las siguientes capturas demuestran algunas evidencias en LOCAL:
+
+### 1. Guardado de data en la DB.
+
+Muestra `medical-pe-db`:
+![Evidencia Ingesta Exitosa](./screenshots/medical-pe-db.png)
+
+Muestra `medical-pe-cl`:
+![Evidencia Ingesta Exitosa](./screenshots/medical-pe-db.png)
+
+### 2. Consulta de Historial en DynamoDB (GET /appointments/{insuredId})
+
+Muestra la respuesta `200 OK` con el historial de citas y el estado actualizado a `completed` tras el procesamiento asíncrono:
+![Evidencia Consulta de Citas](./screenshots/status.png)
+
+### 4. Cobertura de Pruebas Unitarias en Verde (Vitest)
+
+Captura del motor de testing certificando que las 29 aserciones de arquitectura pasan con éxito:
+![Evidencia Pruebas Vitest](./screenshots/tests.png)
+
+---
+
+---
+
 ## Guías y Documentación del Proyecto
 
 Para facilitar la auditoría técnica y el despliegue del ecosistema, la documentación se ha fragmentado en módulos especializados. Haz clic en cualquiera de los siguientes enlaces para navegar por los componentes:
