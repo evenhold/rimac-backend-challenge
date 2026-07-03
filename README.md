@@ -272,7 +272,7 @@ Si prefieres explorar, validar e interactuar con la especificación de la API si
 
 Para facilitar la auditoría técnica y el despliegue del ecosistema, la documentación se ha fragmentado en módulos especializados. Haz clic en cualquiera de los siguientes enlaces para navegar por los componentes:
 
-- **[Lista de Objetivos y Entregables](./OBJETIVOS.md):** Checklist oficial que certifica el cumplimiento de los requisitos del reto, el estado de las tareas asíncronas y el control de la deuda técnica de Swagger UI.
+- **[Lista de Objetivos y Entregables](./OBJECTIVES.md):** Checklist oficial que certifica el cumplimiento de los requisitos del reto, el estado de las tareas asíncronas y el control de la deuda técnica de Swagger UI.
 - **[Manual de Arquitectura y Carpetas](./ARCHITECTURE.md):** Explica los fundamentos de _Clean Architecture_, el desacoplamiento de capas (`core` vs `infra`) y la estrategia de co-localización de pruebas automatizadas (`__tests__`).
 - **[Guía de Uso de la API y Endpoints](./API_USAGE.md):** Contiene la especificación detallada de los contratos de entrada y salida, payloads validados con **Zod**, parámetros de ruta y comandos `curl -i` listos para probar en tu terminal.
 
