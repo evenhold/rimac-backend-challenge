@@ -139,20 +139,40 @@ Compila el código TypeScript y despliega las funciones Lambda junto con los rec
 Para realizar esta operación de manera exitosa, el sistema requiere la inyección de las siguientes variables de entorno clave (configuradas en el archivo .env de la raíz):
 
 ```env
-
 # --- ENTORNO GLOBAL ---
-
 NODE_ENV=development
 AWS_REGION=us-east-1
 
-# --- CONFIGURACIÓN DE PUERTOS ---
-
+# --- CONFIGURACIÓN DE PUERTOS  ---
 LOCALSTACK_PORT=4566
 MYSQL_PE_PORT=3306
 POSTGRES_CL_PORT=5432
 
 # --- CONFIGURACIÓN DE BASE DE DATOS PERÚ (MySQL) ---
+MYSQL_PE_HOST=localhost
+MYSQL_PE_ROOT_PASSWORD=super_secret_root_pass_123
+MYSQL_PE_DATABASE=medical_pe_db
+MYSQL_PE_USER=rimac_user_pe
+MYSQL_PE_PASSWORD=rimac_secure_pass_pe
 
+# --- CONFIGURACIÓN DE BASE DE DATOS CHILE (PostgreSQL) ---
+POSTGRES_CL_HOST=localhost
+POSTGRES_CL_DATABASE=medical_cl_db
+POSTGRES_CL_USER=rimac_user_cl
+POSTGRES_CL_PASSWORD=rimac_secure_pass_cl
+
+# --- CONFIGURACION DE DYNAMO ---
+DYNAMODB_TABLE=rimac-backend-challenge-appointments-dev
+DYNAMODB_ENDPOINT="http://localhost:4566"# --- ENTORNO GLOBAL ---
+NODE_ENV=development
+AWS_REGION=us-east-1
+
+# --- CONFIGURACIÓN DE PUERTOS  ---
+LOCALSTACK_PORT=4566
+MYSQL_PE_PORT=3306
+POSTGRES_CL_PORT=5432
+
+# --- CONFIGURACIÓN DE BASE DE DATOS PERÚ (MySQL) ---
 MYSQL_PE_HOST=host.docker.internal
 MYSQL_PE_ROOT_PASSWORD=super_secret_root_pass_123
 MYSQL_PE_DATABASE=medical_pe_db
@@ -160,25 +180,32 @@ MYSQL_PE_USER=rimac_user_pe
 MYSQL_PE_PASSWORD=rimac_secure_pass_pe
 
 # --- CONFIGURACIÓN DE BASE DE DATOS CHILE (PostgreSQL) ---
-
 POSTGRES_CL_HOST=host.docker.internal
 POSTGRES_CL_DATABASE=medical_cl_db
 POSTGRES_CL_USER=rimac_user_cl
 POSTGRES_CL_PASSWORD=rimac_secure_pass_cl
 
 # --- CONFIGURACION DE DYNAMO ---
-
 DYNAMODB_TABLE=rimac-backend-challenge-appointments-dev
 DYNAMODB_ENDPOINT="http://host.docker.internal:4566"
 
-# --- CONFIGURACION DE SNS ---
 
+# --- CONFIGURACION DE SNS ---
 SNS_ENDPOINT=http://host.docker.internal:4566
 SNS_TOPIC_ARN=arn:aws:sns:us-east-1:000000000000:rimac-backend-challenge-events-topic-dev
 
 # --- CONFIGURACION DE EVENTBRIDGE ----
-
 EVENTBRIDGE_ENDPOINT=http://host.docker.internal:4566
+
+
+
+# --- CONFIGURACION DE SNS ---
+SNS_ENDPOINT=http://localhost:4566
+SNS_TOPIC_ARN=arn:aws:sns:us-east-1:000000000000:rimac-backend-challenge-events-topic-dev
+
+# --- CONFIGURACION DE EVENTBRIDGE ----
+EVENTBRIDGE_ENDPOINT=http://host.docker.internal:4566
+
 
 ```
 
@@ -210,6 +237,14 @@ curl -X GET http://localhost:4566/_aws/execute-api/lvyuxpqaf4/dev/appointments/0
 ## Comandos de Desarrollo Operativos
 
 El archivo `serverless.yml` utiliza la directiva nativa `useDotenv: true` de la versión 3.
+
+#### Ejecutar `pnpm build && pnpm infra:deploy` para crear la TABLA en **dynamoDB** usando serverless.
+
+#### Para no tener problema con los host de docker al iniciar `pnpm dev` ejecutamos el siguiente comando:
+
+```bash
+sudo sh -c "echo '127.0.0.1 host.docker.internal' >> /etc/hosts"
+```
 
 - **Ejecutar Servidor Local Nativo (Serverless Offline):**
   ```bash
