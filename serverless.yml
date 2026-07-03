@@ -6,6 +6,8 @@
 
 service: rimac-backend-challenge
 
+useDotenv: true
+
 plugins:
   - serverless-localstack # Al remover en produccion empezará a leer el .env
   - serverless-offline
@@ -27,8 +29,7 @@ provider:
   environment:
     NODE_ENV: ${env:NODE_ENV, 'development'}
     DYNAMODB_TABLE: ${self:service}-appointments-${self:provider.stage}
-    SNS_TOPIC_ARN:
-      Ref: AppointmentTopic
+    SNS_TOPIC_ARN: ${env:SNS_TOPIC_ARN, self:custom.resolvedSnsTopicArn.${env:IS_OFFLINE, 'false'}}
     DYNAMODB_ENDPOINT: ${env:DYNAMODB_ENDPOINT, 'http://host.docker.internal:4566'}
     SNS_ENDPOINT: ${env:SNS_ENDPOINT, 'http://host.docker.internal:4566'}
     MYSQL_PE_HOST: ${env:MYSQL_PE_HOST, 'host.docker.internal'}
@@ -190,6 +191,15 @@ custom:
     lambda:
       # 💡 Obligamos a que use el montaje de volumen local en tiempo real
       mountCode: true
+  snsTopicFallback:
+    arn: { Ref: AppointmentTopic }
+
+    # 🎯 Selector nativo de ARN para Serverless v3
+    # Cuando corre localmente (true), inyecta el string plano del ARN para ganarle al mock de CloudFormation.
+    # Cuando corre en el contenedor o AWS (false), inyecta el objeto Ref nativo.
+    resolvedSnsTopicArn:
+      true: "arn:aws:sns:us-east-1:000000000000:rimac-backend-challenge-events-topic-dev"
+      false: ${self:custom.snsTopicFallback.arn}
 # ==============================================================================
 # AWS LAMBDA FUNCTIONS DECLARATION (Serverless Entrypoints)
 # ==============================================================================
