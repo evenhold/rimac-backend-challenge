@@ -93,13 +93,23 @@ EVENTBRIDGE_ENDPOINT=http://localhost:4566
 
 ### 1. Levantar Contenedores (LocalStack, MySQL y Postgres)
 
-Arranca el motor de Docker Compose en segundo plano:
+Para garantizar que el ecosistema levante sin errores de conexión o variables sin definir, es estrictamente obligatorio respetar el siguiente orden de operaciones:
+
+#### Paso 1: Creación del Archivo `.env`
+
+Antes de interactuar con Docker o Serverless, debes crear el archivo **`.env`** en la raíz del proyecto. El motor de Docker Compose requiere leer estas variables de entorno en frío para mapear correctamente los puertos de red y las contraseñas de las bases de datos relacionales durante la construcción de los contenedores.
+
+- Puedes tomar las variables de ejemplo de `.env.deploy o .env.example`, son variables de prueba.
+
+#### Paso 2: Inicializar la Infraestructura de Docker
+
+Una vez que el archivo `.env` exista físicamente en tu disco duro, procede a levantar los contenedores en segundo plano (LocalStack, MySQL y PostgreSQL) ejecutando:
 
 ```bash
-docker compose up -d --build
+docker compose up -d
 ```
 
-### 2. Crear las Tablas Relacionales Regonales
+### 2. Crear las Tablas Relacionales Regionales
 
 Ejecuta estos dos comandos para inicializar las bases de datos relacionales con los esquemas correctos y dar accesos globales de red a las Lambdas:
 
