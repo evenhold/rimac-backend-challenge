@@ -1,3 +1,6 @@
+> **Archivado · archived** (2026-11-17). Proyecto de un solo uso; se conserva
+> como referencia y no recibe mantenimiento.
+
 # Rimac AWS Backend Challenge - Sistema de Citas Médicas
 
 Este proyecto implementa una arquitectura dirigida por eventos (_Event-Driven Architecture - EDA_) y principios de _Clean Architecture_ para gestionar de manera asíncrona y eficiente la ingesta y distribución regional de citas médicas entre Perú y Chile.
